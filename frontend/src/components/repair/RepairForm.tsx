@@ -6,6 +6,7 @@ import { useDevice } from "@/hooks/useDevice";
 import { useOutcomes } from "@/hooks/useOutcomes";
 import { getDefaultOutcome } from "@/lib/api/outcomes";
 import { createRepair } from "@/lib/api/repairs";
+import { createDevice } from "@/lib/api/devices";
 import { validateRepairForm } from "@/lib/validators/repair";
 import { BarcodeScanner } from "./BarcodeScanner";
 import { PartSelector } from "./PartSelector";
@@ -15,7 +16,7 @@ import { RepairHistory } from "./RepairHistory";
 import type { RepairFormData } from "@/lib/types";
 
 export function RepairForm() {
-  const { device, isLoading: deviceLoading, error: deviceError, lookup, clear } = useDevice();
+  const { device, isLoading: deviceLoading, error: deviceError, notFound, lastQuery, lookup, clear } = useDevice();
   const { outcomes } = useOutcomes();
 
   const [partsUsed, setPartsUsed] = useState<string[]>([]);
@@ -24,14 +25,42 @@ export function RepairForm() {
   const [photos, setPhotos] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [addAssetTag, setAddAssetTag] = useState("");
+  const [addDellSerial, setAddDellSerial] = useState("");
+  const [isAddingDevice, setIsAddingDevice] = useState(false);
 
-  // Set default outcome once outcomes load
   useEffect(() => {
     if (!outcomeId && outcomes.length > 0) {
       const def = outcomes.find((o) => o.is_default) ?? outcomes[0];
       setOutcomeId(def.id);
     }
   }, [outcomes, outcomeId]);
+
+  // Pre-fill the add-device form with the last searched query
+  useEffect(() => {
+    if (notFound && lastQuery) {
+      setAddAssetTag(lastQuery);
+      setAddDellSerial("");
+    }
+  }, [notFound, lastQuery]);
+
+  const handleAddDevice = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const at = addAssetTag.trim();
+    const ds = addDellSerial.trim();
+    if (!at || !ds) return;
+
+    setIsAddingDevice(true);
+    try {
+      await createDevice(at, ds);
+      toast.success(`Device ${at} added.`);
+      await lookup(at);
+    } catch {
+      toast.error("Failed to add device. Asset tag or serial may already exist.");
+    } finally {
+      setIsAddingDevice(false);
+    }
+  };
 
   const resetForm = async () => {
     setPartsUsed([]);
@@ -83,6 +112,49 @@ export function RepairForm() {
             <BarcodeScanner onScan={lookup} isLoading={deviceLoading} />
             {deviceError && (
               <p className="text-sm text-red-600">{deviceError}</p>
+            )}
+            {notFound && lastQuery && (
+              <div className="border border-amber-200 bg-amber-50 rounded-lg p-4 space-y-3">
+                <p className="text-sm text-amber-800 font-medium">
+                  No device found for &ldquo;{lastQuery}&rdquo;. Add it?
+                </p>
+                <form onSubmit={handleAddDevice} className="space-y-2">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={addAssetTag}
+                      onChange={(e) => setAddAssetTag(e.target.value)}
+                      placeholder="Asset tag"
+                      required
+                      className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 font-mono"
+                    />
+                    <input
+                      type="text"
+                      value={addDellSerial}
+                      onChange={(e) => setAddDellSerial(e.target.value)}
+                      placeholder="Dell serial"
+                      required
+                      className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 font-mono"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      type="submit"
+                      disabled={isAddingDevice || !addAssetTag.trim() || !addDellSerial.trim()}
+                      className="px-4 py-2 bg-amber-600 text-white text-sm font-medium rounded-lg hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {isAddingDevice ? "Adding…" : "Add Device"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={clear}
+                      className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
             )}
             {fieldErrors.device && (
               <p className="text-sm text-red-600">{fieldErrors.device}</p>
