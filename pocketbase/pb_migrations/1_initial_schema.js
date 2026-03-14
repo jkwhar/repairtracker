@@ -120,7 +120,6 @@ migrate((app) => {
     indexes: [
       "CREATE INDEX idx_repairs_device ON repairs (device)",
       "CREATE INDEX idx_repairs_tech ON repairs (tech)",
-      "CREATE INDEX idx_repairs_created ON repairs (created)",
     ],
     listRule: "@request.auth.id != ''",
     viewRule: "@request.auth.id != ''",

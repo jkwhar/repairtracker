@@ -27,6 +27,8 @@
 - Removed invalid `fetchCache` experimental option from `next.config.ts` — not a valid key in Next.js 16, was causing Docker image builds to fail
 - Rewrote all PocketBase migrations and audit hook for v0.23+ API (`app.save()`, `app.delete()`, `fields` instead of `schema`) — GHA build cache was serving a stale layer with a newer PocketBase binary, causing `saveCollection` errors on fresh volume
 - Bumped PocketBase version in Dockerfile from `0.22.14` → `0.36.6` (latest)
+- Updated React and React DOM from `19.2.3` → `19.2.4`
+- Updated all GitHub Actions to latest: `actions/checkout@v6.0.2`, `docker/login-action@v4`, `docker/metadata-action@v6`, `docker/setup-buildx-action@v4`, `docker/build-push-action@v7`
 - Removed Caddy reverse proxy — using NGINX Proxy Manager instead
 - Node.js version bumped from 20 → 24 in frontend Dockerfile
 - PocketBase min password length changed from default (10) to 8
