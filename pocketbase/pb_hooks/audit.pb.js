@@ -1,21 +1,30 @@
 /// <reference path="../pb_data/types.d.ts" />
 
 // Log every record deletion to the audit_logs collection.
-onRecordAfterDeleteRequest((e) => {
+onRecordAfterDeleteSuccess((e) => {
   try {
-    const auditCol = $app.dao().findCollectionByNameOrId("audit_logs");
-    const authRecord = e.httpContext.get("authRecord");
+    const auditCol = $app.findCollectionByNameOrId("audit_logs");
+
+    let performedBy = "";
+    let performedByUsername = "system";
+    try {
+      const reqInfo = e.requestInfo();
+      if (reqInfo && reqInfo.auth) {
+        performedBy = reqInfo.auth.id;
+        performedByUsername = reqInfo.auth.getString("username");
+      }
+    } catch (_) {}
 
     const entry = new Record(auditCol, {
       action: "delete",
       collection_name: e.record.collection().name,
       record_id: e.record.id,
-      performed_by: authRecord ? authRecord.id : "",
-      performed_by_username: authRecord ? authRecord.getString("username") : "system",
+      performed_by: performedBy,
+      performed_by_username: performedByUsername,
       details: JSON.stringify(e.record.publicExport()),
     });
 
-    $app.dao().saveRecord(entry);
+    $app.save(entry);
   } catch (err) {
     // Never let audit failures break the main delete operation
     console.error("[audit]", String(err));

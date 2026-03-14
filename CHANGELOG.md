@@ -25,6 +25,8 @@
 ### Fixed
 - Device lookup now shows an inline "Add Device" form when the scanned asset tag or serial is not found — pre-fills the searched value in the asset tag field and auto-selects the new device after creation
 - Removed invalid `fetchCache` experimental option from `next.config.ts` — not a valid key in Next.js 16, was causing Docker image builds to fail
+- Rewrote all PocketBase migrations and audit hook for v0.23+ API (`app.save()`, `app.delete()`, `fields` instead of `schema`) — GHA build cache was serving a stale layer with a newer PocketBase binary, causing `saveCollection` errors on fresh volume
+- Bumped PocketBase version in Dockerfile from `0.22.14` → `0.27.4`
 - Removed Caddy reverse proxy — using NGINX Proxy Manager instead
 - Node.js version bumped from 20 → 24 in frontend Dockerfile
 - PocketBase min password length changed from default (10) to 8

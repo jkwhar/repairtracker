@@ -1,5 +1,5 @@
 /// <reference path="../pb_data/types.d.ts" />
-migrate((db) => {
+migrate((app) => {
   // Seed parts
   const partNames = [
     "Keyboard",
@@ -22,30 +22,28 @@ migrate((db) => {
     "Powerwashed",
   ];
 
-  const partsCollection = db.findCollectionByNameOrId("parts");
+  const partsCol = app.findCollectionByNameOrId("parts");
   for (const name of partNames) {
-    const record = new Record(partsCollection, { name, active: true });
-    db.saveRecord(record);
+    const record = new Record(partsCol, { name, active: true });
+    app.save(record);
   }
 
   // Seed outcomes
-  const outcomesCollection = db.findCollectionByNameOrId("outcomes");
+  const outcomesCol = app.findCollectionByNameOrId("outcomes");
 
-  const repaired = new Record(outcomesCollection, { name: "Repaired", is_default: true });
-  db.saveRecord(repaired);
+  const repaired = new Record(outcomesCol, { name: "Repaired", is_default: true });
+  app.save(repaired);
 
-  const unrepairable = new Record(outcomesCollection, { name: "Unrepairable", is_default: false });
-  db.saveRecord(unrepairable);
-}, (db) => {
-  // Remove seeded outcomes
-  const outcomes = db.findRecordsByFilter("outcomes", "name = 'Repaired' || name = 'Unrepairable'");
+  const unrepairable = new Record(outcomesCol, { name: "Unrepairable", is_default: false });
+  app.save(unrepairable);
+}, (app) => {
+  const outcomes = app.findRecordsByFilter("outcomes", "name = 'Repaired' || name = 'Unrepairable'", "", 0, 0);
   for (const r of outcomes) {
-    db.deleteRecord(r);
+    app.delete(r);
   }
 
-  // Remove seeded parts
-  const parts = db.findRecordsByFilter("parts", "active = true");
+  const parts = app.findRecordsByFilter("parts", "active = true", "", 0, 0);
   for (const r of parts) {
-    db.deleteRecord(r);
+    app.delete(r);
   }
 });
