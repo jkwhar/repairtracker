@@ -13,6 +13,14 @@ migrate((db) => {
     },
   }));
 
+  users.options = {
+    ...users.options,
+    minPasswordLength: 8,
+    allowEmailAuth: false,
+    allowUsernameAuth: true,
+    requireEmail: false,
+  };
+
   // Techs can view their own record; admins can view all
   users.listRule = "@request.auth.record.role = 'admin'";
   users.viewRule = "@request.auth.id = id || @request.auth.record.role = 'admin'";
