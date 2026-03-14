@@ -19,5 +19,5 @@
 - PocketBase min password length changed from default (10) to 8
 - Removed email field — username-only auth (email auth disabled, username auth enabled, email not required)
 
-### Known Issues (under investigation)
-- Tech/user role login fails — admin login works; suspected PocketBase username auth not applying correctly on existing instances; pushing updated image to confirm fix
+- Fixed tech login failure — root cause: `NEXT_PUBLIC_POCKETBASE_URL` was baked into the image as `https://tickets.jtk.im/api`, so browser-side JS couldn't reach PocketBase when accessing via `ip:3000` directly; new logins failed while admin appeared to work due to a cached auth token
+- PocketBase URL is no longer baked at build time; frontend now proxies all PocketBase requests through Next.js rewrites (`/pb/*` → `http://pocketbase:8090/*`), works regardless of domain or IP

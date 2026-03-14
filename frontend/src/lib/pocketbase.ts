@@ -2,9 +2,10 @@
 
 import PocketBase from "pocketbase";
 
-const PB_URL = process.env.NEXT_PUBLIC_POCKETBASE_URL ?? "http://localhost:8090";
+// Use the Next.js rewrite proxy — works regardless of domain or IP.
+// /pb/* is rewritten server-side to http://pocketbase:8090/*
+const PB_URL = "/pb";
 
-// Singleton PocketBase client — reused across all imports
 let pb: PocketBase;
 
 export function getPocketBase(): PocketBase {

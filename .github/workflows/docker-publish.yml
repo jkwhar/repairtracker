@@ -51,8 +51,6 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            NEXT_PUBLIC_POCKETBASE_URL=https://tickets.jtk.im/api
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
