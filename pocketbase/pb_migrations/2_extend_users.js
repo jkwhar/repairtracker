@@ -1,0 +1,28 @@
+/// <reference path="../pb_data/types.d.ts" />
+migrate((db) => {
+  const users = db.findCollectionByNameOrId("users");
+
+  users.schema.addField(new SchemaField({
+    id: "users_role_field",
+    name: "role",
+    type: "select",
+    required: true,
+    options: {
+      maxSelect: 1,
+      values: ["tech", "admin"],
+    },
+  }));
+
+  // Techs can view their own record; admins can view all
+  users.listRule = "@request.auth.record.role = 'admin'";
+  users.viewRule = "@request.auth.id = id || @request.auth.record.role = 'admin'";
+  users.createRule = "@request.auth.record.role = 'admin'";
+  users.updateRule = "@request.auth.record.role = 'admin'";
+  users.deleteRule = "@request.auth.record.role = 'admin'";
+
+  db.saveCollection(users);
+}, (db) => {
+  const users = db.findCollectionByNameOrId("users");
+  users.schema.removeField("users_role_field");
+  db.saveCollection(users);
+});
