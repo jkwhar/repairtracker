@@ -19,11 +19,12 @@
 - Role model restructured: **tech** now has full access to all features (parts, outcomes, devices, users, repairs, reports); **admin** has everything tech has plus the Audit Log page
 - "Admin" nav link renamed to "Manage" — visible to all authenticated users
 - All PocketBase collection rules opened to any authenticated user (`@request.auth.id != ''`)
-- Disabled Next.js fetch caching (`fetchCache: force-no-store`) — per PocketBase maintainer guidance (discussion #5313), Next.js overrides `fetch` with its own caching layer which interferes with PocketBase API calls
 - PocketBase URL no longer baked at build time; frontend proxies all PocketBase requests through Next.js rewrites (`/pb/*` → `http://pocketbase:8090/*`), works regardless of domain or IP
 - Confirmed architecture is safe: PocketBase SDK runs entirely client-side (`"use client"` on all PB files); avoids the shared-singleton SSR auth-leak vulnerability warned about in discussion #5313
 
 ### Fixed
+- Device lookup now shows an inline "Add Device" form when the scanned asset tag or serial is not found — pre-fills the searched value in the asset tag field and auto-selects the new device after creation
+- Removed invalid `fetchCache` experimental option from `next.config.ts` — not a valid key in Next.js 16, was causing Docker image builds to fail
 - Removed Caddy reverse proxy — using NGINX Proxy Manager instead
 - Node.js version bumped from 20 → 24 in frontend Dockerfile
 - PocketBase min password length changed from default (10) to 8
