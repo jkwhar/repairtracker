@@ -2,14 +2,13 @@
 migrate((app) => {
   const users = app.findCollectionByNameOrId("users");
 
-  users.fields.add({
+  users.fields.add(new SelectField({
     id: "users_role_field",
     name: "role",
-    type: "select",
     required: true,
     maxSelect: 1,
     values: ["tech", "admin"],
-  });
+  }));
 
   // Username-only auth, 8-char minimum password
   users.minPasswordLength = 8;
