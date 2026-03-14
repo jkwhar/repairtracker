@@ -11,7 +11,7 @@
 - Search page: filter by tech, outcome, date range, device
 - Admin pages: parts, outcomes, users, CSV device import, repair management, reports
 - GitHub Actions workflow: builds and pushes Docker images to GHCR on push to main
-- `docker-compose.prod.yml`: pulls from GHCR, for use with NGINX Proxy Manager
+- `docker-compose.yml`: pulls from GHCR, for use with NGINX Proxy Manager
 - Audit Log page (admin-only) — logs every record deletion server-side via PocketBase JS hook; shows time, action, record type, snapshot, and who deleted it; click row to expand full JSON snapshot
 - `audit_logs` PocketBase collection + `pb_hooks/audit.pb.js` server-side hook
 

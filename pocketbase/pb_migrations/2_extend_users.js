@@ -10,10 +10,6 @@ migrate((app) => {
     values: ["tech", "admin"],
   }));
 
-  // Username-only auth, 8-char minimum password
-  users.minPasswordLength = 8;
-  users.passwordAuth.identityFields = ["username"];
-
   // Access rules (migration 4 opens these further)
   users.listRule = "@request.auth.role = 'admin'";
   users.viewRule = "@request.auth.id = id || @request.auth.role = 'admin'";
