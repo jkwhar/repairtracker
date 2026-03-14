@@ -8,16 +8,25 @@ onRecordAfterDeleteSuccess((e) => {
     let performedBy = "";
     let performedByUsername = "system";
     try {
-      const reqInfo = e.requestInfo();
-      if (reqInfo && reqInfo.auth) {
-        performedBy = reqInfo.auth.id;
-        performedByUsername = reqInfo.auth.getString("username");
+      // e.requestEvent is the HTTP request context in PocketBase v0.36+
+      const auth = e.requestEvent && e.requestEvent.auth;
+      if (auth) {
+        performedBy = auth.id;
+        performedByUsername = auth.getString("username");
       }
+    } catch (_) {}
+
+    // collection may be a property or method depending on PB version
+    let collectionName = "";
+    try {
+      collectionName = typeof e.record.collection === "function"
+        ? e.record.collection().name
+        : e.record.collection.name;
     } catch (_) {}
 
     const entry = new Record(auditCol, {
       action: "delete",
-      collection_name: e.record.collection().name,
+      collection_name: collectionName,
       record_id: e.record.id,
       performed_by: performedBy,
       performed_by_username: performedByUsername,

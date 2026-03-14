@@ -14,7 +14,6 @@ migrate((app) => {
       { id: "audit_details_field", name: "details", type: "text", required: false, max: 10000, pattern: "" },
     ],
     indexes: [
-      "CREATE INDEX idx_audit_logs_created ON audit_logs (created)",
       "CREATE INDEX idx_audit_logs_collection ON audit_logs (collection_name)",
     ],
     // Only admins can read logs; no one can edit or delete them via API
