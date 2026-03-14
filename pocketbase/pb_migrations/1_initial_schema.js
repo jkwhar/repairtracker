@@ -28,9 +28,9 @@ migrate((db) => {
     ],
     listRule: "@request.auth.id != ''",
     viewRule: "@request.auth.id != ''",
-    createRule: "@request.auth.record.role = 'admin'",
-    updateRule: "@request.auth.record.role = 'admin'",
-    deleteRule: "@request.auth.record.role = 'admin'",
+    createRule: "@request.auth.role = 'admin'",
+    updateRule: "@request.auth.role = 'admin'",
+    deleteRule: "@request.auth.role = 'admin'",
   });
   db.saveCollection(devices);
 
@@ -58,9 +58,9 @@ migrate((db) => {
     ],
     listRule: "@request.auth.id != ''",
     viewRule: "@request.auth.id != ''",
-    createRule: "@request.auth.record.role = 'admin'",
-    updateRule: "@request.auth.record.role = 'admin'",
-    deleteRule: "@request.auth.record.role = 'admin'",
+    createRule: "@request.auth.role = 'admin'",
+    updateRule: "@request.auth.role = 'admin'",
+    deleteRule: "@request.auth.role = 'admin'",
   });
   db.saveCollection(parts);
 
@@ -88,9 +88,9 @@ migrate((db) => {
     ],
     listRule: "@request.auth.id != ''",
     viewRule: "@request.auth.id != ''",
-    createRule: "@request.auth.record.role = 'admin'",
-    updateRule: "@request.auth.record.role = 'admin'",
-    deleteRule: "@request.auth.record.role = 'admin'",
+    createRule: "@request.auth.role = 'admin'",
+    updateRule: "@request.auth.role = 'admin'",
+    deleteRule: "@request.auth.role = 'admin'",
   });
   db.saveCollection(outcomes);
 
@@ -182,8 +182,8 @@ migrate((db) => {
     listRule: "@request.auth.id != ''",
     viewRule: "@request.auth.id != ''",
     createRule: "@request.auth.id != ''",
-    updateRule: "@request.auth.record.role = 'admin'",
-    deleteRule: "@request.auth.record.role = 'admin'",
+    updateRule: "@request.auth.role = 'admin'",
+    deleteRule: "@request.auth.role = 'admin'",
   });
   db.saveCollection(repairs);
 }, (db) => {

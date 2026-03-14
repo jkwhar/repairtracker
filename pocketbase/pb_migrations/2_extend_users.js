@@ -22,11 +22,11 @@ migrate((db) => {
   };
 
   // Techs can view their own record; admins can view all
-  users.listRule = "@request.auth.record.role = 'admin'";
-  users.viewRule = "@request.auth.id = id || @request.auth.record.role = 'admin'";
-  users.createRule = "@request.auth.record.role = 'admin'";
-  users.updateRule = "@request.auth.record.role = 'admin'";
-  users.deleteRule = "@request.auth.record.role = 'admin'";
+  users.listRule = "@request.auth.role = 'admin'";
+  users.viewRule = "@request.auth.id = id || @request.auth.role = 'admin'";
+  users.createRule = "@request.auth.role = 'admin'";
+  users.updateRule = "@request.auth.role = 'admin'";
+  users.deleteRule = "@request.auth.role = 'admin'";
 
   db.saveCollection(users);
 }, (db) => {
