@@ -26,9 +26,11 @@ export function Header() {
         <Link href="/repairs/search" className="hover:text-gray-300 transition-colors">
           Search
         </Link>
-        <Link href="/admin/parts" className="hover:text-gray-300 transition-colors">
-          Manage
-        </Link>
+        {isAdmin && (
+          <Link href="/admin/parts" className="hover:text-gray-300 transition-colors">
+            Manage
+          </Link>
+        )}
         <span className="text-gray-400">|</span>
         <span className="text-gray-300">{user?.username}</span>
         <button

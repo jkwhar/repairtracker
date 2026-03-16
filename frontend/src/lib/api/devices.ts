@@ -9,7 +9,7 @@ export async function findDevice(query: string): Promise<Device | null> {
   try {
     // Try asset_tag first, then dell_serial
     const results = await pb.collection("devices").getList<Device>(1, 1, {
-      filter: `asset_tag = "${q}" || dell_serial = "${q}"`,
+      filter: pb.filter("asset_tag = {:q} || dell_serial = {:q}", { q }),
     });
     return results.items[0] ?? null;
   } catch {

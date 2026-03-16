@@ -6,7 +6,6 @@ import { Header } from "@/components/layout/Header";
 import { searchRepairs } from "@/lib/api/repairs";
 import { getOutcomes } from "@/lib/api/outcomes";
 import { getUsers } from "@/lib/api/users";
-import getPocketBase from "@/lib/pocketbase";
 import type { Repair, Outcome, User } from "@/lib/types";
 
 export default function SearchPage() {
@@ -51,7 +50,6 @@ export default function SearchPage() {
   };
 
   const totalPages = Math.ceil(total / 25);
-  const pb = getPocketBase();
 
   return (
     <AuthGuard>

@@ -7,7 +7,7 @@ const EXPAND = "device,tech,parts_used,outcome";
 export async function getRepairsForDevice(deviceId: string): Promise<Repair[]> {
   const pb = getPocketBase();
   return pb.collection("repairs").getFullList<Repair>({
-    filter: `device = "${deviceId}"`,
+    filter: pb.filter("device = {:id}", { id: deviceId }),
     sort: "-created",
     expand: EXPAND,
   });
@@ -29,12 +29,15 @@ export async function searchRepairs(
   const pb = getPocketBase();
   const conditions: string[] = [];
 
-  if (filters.techId) conditions.push(`tech = "${filters.techId}"`);
-  if (filters.outcomeId) conditions.push(`outcome = "${filters.outcomeId}"`);
-  if (filters.dateFrom) conditions.push(`created >= "${filters.dateFrom}"`);
-  if (filters.dateTo) conditions.push(`created <= "${filters.dateTo} 23:59:59"`);
+  if (filters.deviceQuery) {
+    conditions.push(pb.filter("device.asset_tag ~ {:q} || device.dell_serial ~ {:q}", { q: filters.deviceQuery }));
+  }
+  if (filters.techId) conditions.push(pb.filter("tech = {:id}", { id: filters.techId }));
+  if (filters.outcomeId) conditions.push(pb.filter("outcome = {:id}", { id: filters.outcomeId }));
+  if (filters.dateFrom) conditions.push(pb.filter("created >= {:d}", { d: filters.dateFrom }));
+  if (filters.dateTo) conditions.push(pb.filter("created <= {:d}", { d: `${filters.dateTo} 23:59:59` }));
 
-  const filter = conditions.length > 0 ? conditions.join(" && ") : "";
+  const filter = conditions.join(" && ");
 
   const result = await pb.collection("repairs").getList<Repair>(page, perPage, {
     filter,

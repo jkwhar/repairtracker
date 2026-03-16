@@ -23,6 +23,9 @@
 - Confirmed architecture is safe: PocketBase SDK runs entirely client-side (`"use client"` on all PB files); avoids the shared-singleton SSR auth-leak vulnerability warned about in discussion #5313
 
 ### Fixed
+- Parts add failing — migration 4 `idx_audit_logs_created` index was preventing open collection rules from applying; removed the index
+- Device lookup Enter key doing nothing when typed manually — `useBarcodeScanner` was calling `e.preventDefault()` unconditionally on Enter, blocking form submit when the scanner buffer was empty; now only prevents default when buffer has content
+- Device lookup filter using raw template string with user input — replaced with `pb.filter()` to safely handle special characters in asset tags
 - Device lookup now shows an inline "Add Device" form when the scanned asset tag or serial is not found — pre-fills the searched value in the asset tag field and auto-selects the new device after creation
 - Removed invalid `fetchCache` experimental option from `next.config.ts` — not a valid key in Next.js 16, was causing Docker image builds to fail
 - Rewrote all PocketBase migrations and audit hook for v0.23+ API (`app.save()`, `app.delete()`, `fields` instead of `schema`) — GHA build cache was serving a stale layer with a newer PocketBase binary, causing `saveCollection` errors on fresh volume

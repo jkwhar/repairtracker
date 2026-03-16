@@ -15,10 +15,14 @@ export function useBarcodeScanner(onScan: (value: string) => void) {
       lastKeyTimeRef.current = now;
 
       if (e.key === "Enter") {
-        e.preventDefault();
         const value = bufferRef.current.trim();
         bufferRef.current = "";
-        if (value) onScan(value);
+        if (value) {
+          // Scanner input: buffer has content, fire directly
+          e.preventDefault();
+          onScan(value);
+        }
+        // Manual typing: buffer is empty, let the form's onSubmit handle it
         return;
       }
 

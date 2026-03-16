@@ -54,6 +54,7 @@ export function PhotoUpload({ files, onChange, error }: Props) {
                 src={URL.createObjectURL(file)}
                 alt={file.name}
                 className="w-20 h-20 object-cover rounded-lg border border-gray-200"
+                onLoad={(e) => URL.revokeObjectURL((e.target as HTMLImageElement).src)}
               />
               <button
                 type="button"
