@@ -22,7 +22,12 @@
 - PocketBase URL no longer baked at build time; frontend proxies all PocketBase requests through Next.js rewrites (`/pb/*` → `http://pocketbase:8090/*`), works regardless of domain or IP
 - Confirmed architecture is safe: PocketBase SDK runs entirely client-side (`"use client"` on all PB files); avoids the shared-singleton SSR auth-leak vulnerability warned about in discussion #5313
 
+### Added
+- Parts inventory tracking — `quantity` field on parts (migration 5); admin can set stock per part; stock auto-decrements when a repair is saved; PartSelector shows `×N` count (amber when ≤3, red "Out" when 0); blank quantity = no tracking
+
 ### Fixed
+- "Add Device" form was nested inside the main repair `<form>` (invalid HTML); browsers stripped the inner form so the "Add Device" button submitted the repair form instead — converted to a `<div>` with `type="button"` onClick handlers; Dell serial field now auto-focuses so the tech only needs to fill in the missing piece
+- PartSelector now shows a helpful empty-state message ("No active parts. Add parts in Manage → Parts.") instead of a silent blank area
 - Parts add failing — migration 4 `idx_audit_logs_created` index was preventing open collection rules from applying; removed the index
 - Device lookup Enter key doing nothing when typed manually — `useBarcodeScanner` was calling `e.preventDefault()` unconditionally on Enter, blocking form submit when the scanner buffer was empty; now only prevents default when buffer has content
 - Device lookup filter using raw template string with user input — replaced with `pb.filter()` to safely handle special characters in asset tags

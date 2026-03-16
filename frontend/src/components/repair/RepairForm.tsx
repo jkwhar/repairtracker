@@ -6,6 +6,7 @@ import { useDevice } from "@/hooks/useDevice";
 import { useOutcomes } from "@/hooks/useOutcomes";
 import { getDefaultOutcome } from "@/lib/api/outcomes";
 import { createRepair } from "@/lib/api/repairs";
+import { decrementPartStock } from "@/lib/api/parts";
 import { createDevice } from "@/lib/api/devices";
 import { validateRepairForm } from "@/lib/validators/repair";
 import { BarcodeScanner } from "./BarcodeScanner";
@@ -25,6 +26,7 @@ export function RepairForm() {
   const [photos, setPhotos] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [partsKey, setPartsKey] = useState(0);
   const [addAssetTag, setAddAssetTag] = useState("");
   const [addDellSerial, setAddDellSerial] = useState("");
   const [isAddingDevice, setIsAddingDevice] = useState(false);
@@ -44,8 +46,7 @@ export function RepairForm() {
     }
   }, [notFound, lastQuery]);
 
-  const handleAddDevice = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleAddDevice = async () => {
     const at = addAssetTag.trim();
     const ds = addDellSerial.trim();
     if (!at || !ds) return;
@@ -92,6 +93,8 @@ export function RepairForm() {
     setIsSubmitting(true);
     try {
       await createRepair(formData);
+      await decrementPartStock(partsUsed);
+      setPartsKey((k) => k + 1);
       toast.success("Repair saved successfully.");
       await resetForm();
     } catch {
@@ -118,14 +121,13 @@ export function RepairForm() {
                 <p className="text-sm text-amber-800 font-medium">
                   No device found for &ldquo;{lastQuery}&rdquo;. Add it?
                 </p>
-                <form onSubmit={handleAddDevice} className="space-y-2">
+                <div className="space-y-2">
                   <div className="flex gap-2">
                     <input
                       type="text"
                       value={addAssetTag}
                       onChange={(e) => setAddAssetTag(e.target.value)}
                       placeholder="Asset tag"
-                      required
                       className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 font-mono"
                     />
                     <input
@@ -133,13 +135,14 @@ export function RepairForm() {
                       value={addDellSerial}
                       onChange={(e) => setAddDellSerial(e.target.value)}
                       placeholder="Dell serial"
-                      required
+                      autoFocus
                       className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 font-mono"
                     />
                   </div>
                   <div className="flex gap-2">
                     <button
-                      type="submit"
+                      type="button"
+                      onClick={handleAddDevice}
                       disabled={isAddingDevice || !addAssetTag.trim() || !addDellSerial.trim()}
                       className="px-4 py-2 bg-amber-600 text-white text-sm font-medium rounded-lg hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
@@ -153,7 +156,7 @@ export function RepairForm() {
                       Cancel
                     </button>
                   </div>
-                </form>
+                </div>
               </div>
             )}
             {fieldErrors.device && (
@@ -187,6 +190,7 @@ export function RepairForm() {
               )}
             </h2>
             <PartSelector
+              key={partsKey}
               selected={partsUsed}
               onChange={setPartsUsed}
               error={fieldErrors.parts_used}

@@ -13,6 +13,7 @@ export interface Device extends RecordModel {
 export interface Part extends RecordModel {
   name: string;
   active: boolean;
+  quantity: number | null;
 }
 
 export interface Outcome extends RecordModel {
