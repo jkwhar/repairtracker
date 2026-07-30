@@ -12,7 +12,8 @@ export async function findDevice(query: string): Promise<Device | null> {
       filter: pb.filter("asset_tag = {:q} || dell_serial = {:q}", { q }),
     });
     return results.items[0] ?? null;
-  } catch {
+  } catch (err) {
+    console.error("[findDevice] lookup failed:", err);
     return null;
   }
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { ClientResponseError } from "pocketbase";
 import { login as pbLogin, logout as pbLogout, getCurrentUser, isAdmin } from "@/lib/auth";
 import getPocketBase from "@/lib/pocketbase";
 import type { User } from "@/lib/types";
@@ -32,11 +33,17 @@ export function useAuth() {
     try {
       const user = await pbLogin(username, password);
       setState({ user, isLoading: false, error: null });
-    } catch {
+    } catch (err) {
+      // PocketBase returns 400 for bad credentials; anything else (network
+      // failure, server down, unexpected response) is a different problem
+      // and shouldn't be reported to the user as "wrong password".
+      const isBadCredentials = err instanceof ClientResponseError && err.status === 400;
       setState((prev) => ({
         ...prev,
         isLoading: false,
-        error: "Invalid username or password.",
+        error: isBadCredentials
+          ? "Invalid username or password."
+          : "Unable to reach the server. Please try again.",
       }));
     }
   }, []);

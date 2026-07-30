@@ -37,18 +37,29 @@ export async function deletePart(id: string): Promise<void> {
   await pb.collection("parts").delete(id);
 }
 
-/** Decrement stock by 1 for each part id. Errors are swallowed — inventory is best-effort. */
+/**
+ * Decrement stock by 1 for each part id used in a repair. Best-effort: a
+ * failure to update one part's stock does not throw, since inventory drift
+ * shouldn't block a repair from being logged — but failures are now logged
+ * instead of silently disappearing.
+ */
 export async function decrementPartStock(partIds: string[]): Promise<void> {
   const pb = getPocketBase();
   const unique = [...new Set(partIds)];
-  await Promise.allSettled(
+  const results = await Promise.allSettled(
     unique.map(async (id) => {
       const part = await pb.collection("parts").getOne<Part>(id);
-      const current = part.quantity ?? null;
-      if (current === null) return; // no inventory tracking for this part
-      await pb.collection("parts").update<Part>(id, {
-        quantity: Math.max(0, current - partIds.filter((p) => p === id).length),
-      });
+      if (part.quantity === null) return; // no inventory tracking for this part
+      const count = partIds.filter((p) => p === id).length;
+      // Atomic server-side decrement (PocketBase's "field-" modifier) rather
+      // than reading the current value and writing it back — the latter
+      // races when two repairs decrement the same part concurrently.
+      await pb.collection("parts").update<Part>(id, { "quantity-": count });
     })
   );
+  for (const result of results) {
+    if (result.status === "rejected") {
+      console.error("[decrementPartStock] failed to update part stock:", result.reason);
+    }
+  }
 }

@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/hooks/useAuth";
 import { getAuditLogs, type AuditLog } from "@/lib/api/audit";
 
 const COLLECTION_LABELS: Record<string, string> = {
@@ -70,19 +68,10 @@ function AuditRow({ log }: { log: AuditLog }) {
 }
 
 export default function AuditPage() {
-  const { isAdmin, isAuthenticated } = useAuth();
-  const router = useRouter();
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    if (!isAuthenticated) return;
-    if (!isAdmin) {
-      router.replace("/admin/parts");
-    }
-  }, [isAuthenticated, isAdmin, router]);
 
   const load = useCallback(async (p: number) => {
     setIsLoading(true);
@@ -96,12 +85,10 @@ export default function AuditPage() {
   }, []);
 
   useEffect(() => {
-    if (isAdmin) load(page);
-  }, [isAdmin, page, load]);
+    load(page);
+  }, [page, load]);
 
   const totalPages = Math.ceil(total / 50);
-
-  if (!isAdmin) return null;
 
   return (
     <div className="space-y-4">
