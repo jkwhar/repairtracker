@@ -13,7 +13,8 @@ export async function getDefaultOutcome(): Promise<Outcome | null> {
       filter: "is_default = true",
     });
     return results.items[0] ?? null;
-  } catch {
+  } catch (err) {
+    console.error("[getDefaultOutcome] lookup failed:", err);
     return null;
   }
 }
