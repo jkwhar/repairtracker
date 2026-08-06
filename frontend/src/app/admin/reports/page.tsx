@@ -20,17 +20,29 @@ function groupBy<T>(items: T[], key: (item: T) => string): Record<string, T[]> {
 export default function ReportsPage() {
   const [repairs, setRepairs] = useState<Repair[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     // Fetch up to 2000 repairs for client-side aggregation
-    searchRepairs({}, 1, 2000).then((r) => {
-      setRepairs(r.items);
-      setIsLoading(false);
-    });
+    searchRepairs({}, 1, 2000)
+      .then((r) => {
+        setRepairs(r.items);
+      })
+      .catch((err) => {
+        console.error("[ReportsPage] failed to load repairs:", err);
+        setError(true);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   }, []);
 
   if (isLoading) {
     return <div className="text-sm text-gray-400">Loading reports…</div>;
+  }
+
+  if (error) {
+    return <div className="text-sm text-red-600">Failed to load reports. Please try again.</div>;
   }
 
   // Repairs per week
