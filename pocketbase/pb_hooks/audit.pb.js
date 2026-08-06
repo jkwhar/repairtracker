@@ -1,15 +1,23 @@
 /// <reference path="../pb_data/types.d.ts" />
 
-// Shared logic for writing one audit_logs entry. Never throws — a broken
-// audit write must not break the real create/update/delete operation.
-function logAudit(action, e) {
+// PocketBase's JSVM evaluates each onRecordXXX callback in isolation from
+// the rest of this file — a shared top-level helper function (or anything
+// attached to $app from outside the callback) throws "ReferenceError: ...
+// is not defined" the moment the hook actually fires, which PocketBase then
+// surfaces to the API caller as a false "Failed to create record." even
+// though the record was already saved. So the audit-log-write logic below
+// is duplicated inline in each hook rather than factored out — don't
+// "clean this up" into a shared function without re-verifying against a
+// live PocketBase instance first.
+
+// Log every record deletion to the audit_logs collection.
+onRecordAfterDeleteSuccess((e) => {
   try {
     const auditCol = $app.findCollectionByNameOrId("audit_logs");
 
     let performedBy = "";
     let performedByUsername = "system";
     try {
-      // e.requestEvent is the HTTP request context in PocketBase v0.36+
       const auth = e.requestEvent && e.requestEvent.auth;
       if (auth) {
         performedBy = auth.id;
@@ -17,7 +25,6 @@ function logAudit(action, e) {
       }
     } catch (_) {}
 
-    // collection may be a property or method depending on PB version
     let collectionName = "";
     try {
       collectionName = typeof e.record.collection === "function"
@@ -26,7 +33,7 @@ function logAudit(action, e) {
     } catch (_) {}
 
     const entry = new Record(auditCol, {
-      action,
+      action: "delete",
       collection_name: collectionName,
       record_id: e.record.id,
       performed_by: performedBy,
@@ -38,11 +45,6 @@ function logAudit(action, e) {
   } catch (err) {
     console.error("[audit]", String(err));
   }
-}
-
-// Log every record deletion to the audit_logs collection.
-onRecordAfterDeleteSuccess((e) => {
-  logAudit("delete", e);
 });
 
 // Log creates/updates on the collections where an audit trail matters most:
@@ -50,9 +52,73 @@ onRecordAfterDeleteSuccess((e) => {
 // password resets — the exact actions a privilege-escalation attempt would
 // make).
 onRecordAfterCreateSuccess((e) => {
-  logAudit("create", e);
+  try {
+    const auditCol = $app.findCollectionByNameOrId("audit_logs");
+
+    let performedBy = "";
+    let performedByUsername = "system";
+    try {
+      const auth = e.requestEvent && e.requestEvent.auth;
+      if (auth) {
+        performedBy = auth.id;
+        performedByUsername = auth.getString("username");
+      }
+    } catch (_) {}
+
+    let collectionName = "";
+    try {
+      collectionName = typeof e.record.collection === "function"
+        ? e.record.collection().name
+        : e.record.collection.name;
+    } catch (_) {}
+
+    const entry = new Record(auditCol, {
+      action: "create",
+      collection_name: collectionName,
+      record_id: e.record.id,
+      performed_by: performedBy,
+      performed_by_username: performedByUsername,
+      details: JSON.stringify(e.record.publicExport()),
+    });
+
+    $app.save(entry);
+  } catch (err) {
+    console.error("[audit]", String(err));
+  }
 }, "repairs", "users");
 
 onRecordAfterUpdateSuccess((e) => {
-  logAudit("update", e);
+  try {
+    const auditCol = $app.findCollectionByNameOrId("audit_logs");
+
+    let performedBy = "";
+    let performedByUsername = "system";
+    try {
+      const auth = e.requestEvent && e.requestEvent.auth;
+      if (auth) {
+        performedBy = auth.id;
+        performedByUsername = auth.getString("username");
+      }
+    } catch (_) {}
+
+    let collectionName = "";
+    try {
+      collectionName = typeof e.record.collection === "function"
+        ? e.record.collection().name
+        : e.record.collection.name;
+    } catch (_) {}
+
+    const entry = new Record(auditCol, {
+      action: "update",
+      collection_name: collectionName,
+      record_id: e.record.id,
+      performed_by: performedBy,
+      performed_by_username: performedByUsername,
+      details: JSON.stringify(e.record.publicExport()),
+    });
+
+    $app.save(entry);
+  } catch (err) {
+    console.error("[audit]", String(err));
+  }
 }, "repairs", "users");
