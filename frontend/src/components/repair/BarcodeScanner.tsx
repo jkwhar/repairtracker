@@ -26,15 +26,6 @@ export function BarcodeScanner({ onScan, isLoading }: Props) {
   // which can make Enter/submit fall through to a native page reload
   // instead of firing the React handler, so submission is handled entirely
   // via this keydown/click wiring.
-  const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    handleKeyDown(e);
-    // handleKeyDown already fired onScan (and called preventDefault) for
-    // fast scanner input; only handle the manual-typing Enter case here.
-    if (e.key === "Enter" && !e.defaultPrevented) {
-      submit();
-    }
-  };
-
   return (
     <div className="flex gap-2">
       <input
@@ -42,7 +33,7 @@ export function BarcodeScanner({ onScan, isLoading }: Props) {
         type="text"
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        onKeyDown={onKeyDown}
+        onKeyDown={(e) => handleKeyDown(e, value)}
         placeholder="Scan or type asset tag / serial number…"
         autoFocus
         autoComplete="off"
