@@ -7,11 +7,21 @@ export async function findDevice(query: string): Promise<Device | null> {
   if (!q) return null;
 
   try {
-    // Try asset_tag first, then dell_serial
-    const results = await pb.collection("devices").getList<Device>(1, 1, {
-      filter: pb.filter("asset_tag = {:q} || dell_serial = {:q}", { q }),
+    // Techs scan or type asset tags/serials in whatever case is printed on
+    // the label, which doesn't always match how a device was imported, so
+    // match case-insensitively. PocketBase's `=` is case-sensitive; `~` is
+    // a case-insensitive *substring* match, so narrow with it and then
+    // require an exact (case-insensitive) match locally to avoid returning
+    // an unrelated device whose tag merely contains the query.
+    const results = await pb.collection("devices").getList<Device>(1, 50, {
+      filter: pb.filter("asset_tag ~ {:q} || dell_serial ~ {:q}", { q }),
     });
-    return results.items[0] ?? null;
+    const qLower = q.toLowerCase();
+    return (
+      results.items.find(
+        (d) => d.asset_tag.toLowerCase() === qLower || d.dell_serial.toLowerCase() === qLower
+      ) ?? null
+    );
   } catch (err) {
     console.error("[findDevice] lookup failed:", err);
     return null;
