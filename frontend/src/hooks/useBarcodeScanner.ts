@@ -1,47 +1,30 @@
 "use client";
 
-import { useRef, useCallback } from "react";
+import { useCallback } from "react";
 
-const SCANNER_THRESHOLD_MS = 50; // Keystrokes faster than this = scanner input
-
+// Hardware barcode scanners act as a keyboard: they type the code's
+// characters and then send Enter. The input's controlled value is always
+// accurate by the time Enter fires — even for scanner-speed keystrokes a
+// few ms apart, each keydown is a separate DOM event that React has
+// already committed the prior character's state update for — so scanned
+// and manually-typed/pasted input can share the exact same submit path.
 export function useBarcodeScanner(onScan: (value: string) => void) {
-  const bufferRef = useRef<string>("");
-  const lastKeyTimeRef = useRef<number>(0);
-
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLInputElement>) => {
-      const now = Date.now();
-      const delta = now - lastKeyTimeRef.current;
-      lastKeyTimeRef.current = now;
-
-      if (e.key === "Enter") {
-        const value = bufferRef.current.trim();
-        bufferRef.current = "";
-        if (value) {
-          // Scanner input: buffer has content, fire directly
-          e.preventDefault();
-          onScan(value);
-        }
-        // Manual typing: buffer is empty, let the form's onSubmit handle it
-        return;
-      }
-
-      // If keystrokes are very fast (scanner), accumulate in buffer silently
-      if (delta < SCANNER_THRESHOLD_MS && e.key.length === 1) {
-        bufferRef.current += e.key;
-        // Let the input handle it naturally too — the input's value is the source of truth
-      }
+  const handleManualSubmit = useCallback(
+    (value: string) => {
+      const trimmed = value.trim();
+      if (trimmed) onScan(trimmed);
     },
     [onScan]
   );
 
-  // For manual submission (button click or form submit)
-  const handleManualSubmit = useCallback(
-    (value: string) => {
-      bufferRef.current = "";
-      if (value.trim()) onScan(value.trim());
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>, value: string) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        handleManualSubmit(value);
+      }
     },
-    [onScan]
+    [handleManualSubmit]
   );
 
   return { handleKeyDown, handleManualSubmit };
