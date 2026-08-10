@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { ClientResponseError } from "pocketbase";
 import { searchRepairs } from "@/lib/api/repairs";
+import { expandToArray } from "@/lib/pocketbase";
 import type { Repair } from "@/lib/types";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
@@ -24,17 +26,26 @@ export default function ReportsPage() {
 
   useEffect(() => {
     // Fetch up to 2000 repairs for client-side aggregation
+    let cancelled = false;
     searchRepairs({}, 1, 2000)
       .then((r) => {
+        if (cancelled) return;
         setRepairs(r.items);
+        setIsLoading(false);
       })
       .catch((err) => {
+        if (cancelled) return;
+        // A stale request auto-cancelled by a newer one (e.g. React Strict
+        // Mode's double-invoked effect in dev) isn't a real failure — the
+        // newer request's own .then/.catch handles the actual outcome.
+        if (err instanceof ClientResponseError && err.isAbort) return;
         console.error("[ReportsPage] failed to load repairs:", err);
         setError(true);
-      })
-      .finally(() => {
         setIsLoading(false);
       });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   if (isLoading) {
@@ -65,7 +76,7 @@ export default function ReportsPage() {
   // Parts usage
   const partCounts: Record<string, number> = {};
   for (const repair of repairs) {
-    for (const part of repair.expand?.parts_used ?? []) {
+    for (const part of expandToArray(repair.expand?.parts_used)) {
       partCounts[part.name] = (partCounts[part.name] ?? 0) + 1;
     }
   }
