@@ -1,7 +1,7 @@
 "use client";
 
 import { useRepairsForDevice } from "@/hooks/useRepairs";
-import getPocketBase from "@/lib/pocketbase";
+import getPocketBase, { expandToArray } from "@/lib/pocketbase";
 import type { Repair } from "@/lib/types";
 
 interface Props {
@@ -12,7 +12,7 @@ function RepairCard({ repair }: { repair: Repair }) {
   const pb = getPocketBase();
   const tech = repair.expand?.tech?.username ?? "Unknown";
   const outcome = repair.expand?.outcome?.name ?? "—";
-  const parts = repair.expand?.parts_used?.map((p) => p.name) ?? [];
+  const parts = expandToArray(repair.expand?.parts_used).map((p) => p.name);
   const date = new Date(repair.created).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",

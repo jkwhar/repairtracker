@@ -6,6 +6,7 @@ import { Header } from "@/components/layout/Header";
 import { searchRepairs } from "@/lib/api/repairs";
 import { getOutcomes } from "@/lib/api/outcomes";
 import { getUsers } from "@/lib/api/users";
+import { expandToArray } from "@/lib/pocketbase";
 import type { Repair, Outcome, User } from "@/lib/types";
 
 export default function SearchPage() {
@@ -121,7 +122,8 @@ export default function SearchPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {repairs.map((repair) => {
-                    const parts = repair.expand?.parts_used?.map((p) => p.name).join(", ") ?? "—";
+                    const partsList = expandToArray(repair.expand?.parts_used);
+                    const parts = partsList.length > 0 ? partsList.map((p) => p.name).join(", ") : "—";
                     const outcome = repair.expand?.outcome?.name ?? "—";
                     const device = repair.expand?.device;
                     const tech = repair.expand?.tech?.username ?? "—";
